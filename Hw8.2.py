@@ -130,7 +130,7 @@ Define supporting structures
 '''
 
 # define server tuple to pass into arrivals, provider methods
-Server = collections.namedtuple('Server','processor,delay_high,n_high,delay_low,n_low') 
+Server = collections.namedtuple('Server','processor,delay_H,num_H,delay_L,num_L') 
 
 # Mean delay in each iteration
 Mean_Delay_H=np.zeros((ITERATIONS,NUMLAM)) 
@@ -147,36 +147,45 @@ for l in range(NUMLAM):
         # M|G|1 server, could simulate arbitrary M|G|n by updating capacity
         processor=simpy.PriorityResource(env,capacity=1)
 
-        delay = np.zeros(1)
-        n = np.zeros(1)
-        rate = LAM[l]
+        delay_H=np.zeros(1)
+        num_H=np.zeros(1)
+        delay_L=np.zeros(1)
+        num_L=np.zeros(1)
 
+        rate1=LAM1[l]
+        rate2=LAM2[l]
         # Length of simulation to generate PKT_NUM arrivals on average
-        sim_time = PKT_NUM/rate 
+        sim_time = PKT_NUM/LAM[l]
 
         t_start = FRAC*sim_time # Start collecting statistics after that time
 
-        server = Server(processor,delay,n) #define Server collections
+        server = Server(processor,delay_H,num_H,delay_L,num_L) #define Server collections
 
         #start simulation
-        env.process(arrivals(env,server,rate,t_start)) 
+        env.process(arrivals(env,server,rate1,rate2,t_start)) 
         env.run(until=sim_time)
 
         # Record average delay
-        Mean_Delay[itr,l] = delay[0]/n[0]
-    
-        
+        if num_H[0]>0:
+            Mean_Delay_H[itr,l]=delay_H[0]/num_H[0]
+        else:
+            Mean_Delay_H[itr,l]=0
+        if num_L[0]>0:
+            Mean_Delay_L[itr,l]=delay_L[0]/num_L[0]
+        else:
+            Mean_Delay_L[itr,l]=0
 
 '''
 Compute Statistics     
 '''
-print('Mean Delay Vector \r\n', Mean_Delay)
-Sample_Delay = np.mean(Mean_Delay,axis=0) # Sample Mean of the Delays
-
+print('Mean Delay for High priority class: \r\n', Mean_Delay_H)
+print('Mean Delay for Low priority class: \r\n', Mean_Delay_L)
+Sample_Delay = np.mean(Mean_Delay_H,axis=0) # Sample Mean of the Delays
+Sample_Delay = np.mean(Mean_Delay_L,axis=0)
 # compute confidence intervals
 print('Statistical Results')
-CI = stats.sem(Mean_Delay, axis=0)*stats.norm.ppf(1-ALPHA/2)
-
+CI_H = stats.sem(Mean_Delay_H, axis=0)*stats.norm.ppf(1-ALPHA/2)
+CI_L = stats.sem(Mean_Delay_L, axis=0)*stats.norm.ppf(1-ALPHA/2)
 
 for l in range(NUMLAM):
     print('At arrival rate %f:' %(LAM[l]))
