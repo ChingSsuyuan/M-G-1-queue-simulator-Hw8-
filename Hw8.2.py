@@ -78,7 +78,7 @@ server - tuple featuring server resource and delay statistic collector
 t_start - time to begin collection of statistics
 '''
 
-def provider(env,arrival,serv_time,t_start,server):
+def provider(env,arrival,serv_time,t_start,server,priority):
     # yield until the server is available
     with server.processor.request(priority=priority) as MyTurn:
         yield MyTurn
@@ -87,9 +87,13 @@ def provider(env,arrival,serv_time,t_start,server):
         yield env.timeout(serv_time)
 
         # Record total system time, if beyond the initial transient time
-        if (env.now > t_start):
-            server.delay[0] += env.now-arrival
-            server.n[0] += 1
+        if priority == 1: 
+            server.delay_high[0]+=env.now-arrival
+            server.n_high[0]+=1
+        else: 
+            server.delay_low[0]+=env.now-arrival
+            server.n_low[0]+=1
+
 
 
 '''
