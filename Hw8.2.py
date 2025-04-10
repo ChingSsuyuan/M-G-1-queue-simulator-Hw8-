@@ -105,30 +105,36 @@ rate - arrival rate passed from loop
 t_start - time to begin collection of statistics
 '''
 
-def arrivals(env, server, rate, t_start):
+def arrivals(env, server, rate1,rate2, t_start):
+    total_rate=rate1+rate2
+    prob_1=rate1/total_rate
     while True:
 
-        yield env.timeout(np.random.exponential(1/rate)) # Poisson arrivals; 
+        yield env.timeout(np.random.exponential(1/total_rate)) # Poisson arrivals; 
 
         arrival = env.now # mark arrival time
-        
+        if np.random.random()<prob_1:
+            prioriy=1
+        else:
+            prioriy=2
         if K == 1: 
             serv_time = 1/MU # Special case for Deterministic system
         else:
             serv_time = np.random.gamma(SHAPE,SCALE)
 
         # Have server process customer arrival
-        env.process(provider(env,arrival,serv_time,t_start,server))
+        env.process(provider(env,arrival,serv_time,t_start,server,prioriy))
 
 '''
 Define supporting structures
 '''
 
 # define server tuple to pass into arrivals, provider methods
-Server = collections.namedtuple('Server','processor,delay,n') 
+Server = collections.namedtuple('Server','processor,delay_high,n_high,delay_low,n_low') 
 
 # Mean delay in each iteration
-Mean_Delay = np.zeros((ITERATIONS,NUMLAM)) 
+Mean_Delay_H=np.zeros((ITERATIONS,NUMLAM)) 
+Mean_Delay_L=np.zeros((ITERATIONS,NUMLAM)) 
 
 '''
 Main Simulator Loop
