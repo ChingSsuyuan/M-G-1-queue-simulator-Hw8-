@@ -206,8 +206,8 @@ for l in range(NUMLAM):  #PK Formula
     NPAnalytical_Delay_L[l] = (lambda_total * E_Of_Service_2)/(2*(1-RHO1[l])*(1-RHO[l])) + E_Of_Service 
 
 # Plot of Expected Delays    
-plt.plot(LAM,NPAnalytical_Delay_H,'b-', label='High Class, Analytical')
-plt.plot(LAM,NPAnalytical_Delay_L,'r-', label='Low Class, Analytical')
+plt.plot(LAM,NPAnalytical_Delay_H,'r-', label='High Class, Analytical')
+plt.plot(LAM,NPAnalytical_Delay_L,'b-', label='Low Class, Analytical')
 # Plot of Simulated Delays
 plt.errorbar(LAM, Sample_Delay_H, yerr=CI_H, fmt='rx', label='High Class, Simulated') 
 plt.errorbar(LAM, Sample_Delay_L, yerr=CI_L, fmt='gx', label='Ligh Class, Simulated') 
