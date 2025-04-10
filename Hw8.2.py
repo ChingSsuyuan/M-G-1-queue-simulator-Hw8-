@@ -115,16 +115,16 @@ def arrivals(env, server, rate1,rate2, t_start):
 
         arrival = env.now # mark arrival time
         if np.random.random()<prob_1:
-            prioriy=1
+            priority=1
         else:
-            prioriy=2
+            priority=2
         if K == 1: 
             serv_time = 1/MU # Special case for Deterministic system
         else:
             serv_time = np.random.gamma(SHAPE,SCALE)
 
         # Have server process customer arrival
-        env.process(provider(env,arrival,serv_time,t_start,server,prioriy))
+        env.process(provider(env,arrival,serv_time,t_start,server,priority))
 
 '''
 Define supporting structures
@@ -210,7 +210,7 @@ plt.plot(LAM,NPAnalytical_Delay_H,'r-', label='High Class, Analytical')
 plt.plot(LAM,NPAnalytical_Delay_L,'b-', label='Low Class, Analytical')
 # Plot of Simulated Delays
 plt.errorbar(LAM, Sample_Delay_H, yerr=CI_H, fmt='rx', label='High Class, Simulated') 
-plt.errorbar(LAM, Sample_Delay_L, yerr=CI_L, fmt='gx', label='Ligh Class, Simulated') 
+plt.errorbar(LAM, Sample_Delay_L, yerr=CI_L, fmt='gx', label='Low Class, Simulated') 
 plt.title('Comparison of Analysis to Simulation (K=%d, MU=%.3f)' %(K, MU))
 plt.xlabel('Lambda')
 plt.ylabel('Mean System Time (Delay)')
