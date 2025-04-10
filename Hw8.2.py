@@ -9,6 +9,7 @@ changes the results. In addition, Gamma distribution with SHAPE = 1 (or K=2)
 corresponds to the Exponential distribution
 
 Authors: Jonathan Chamberlain and David Starobinski
+Modified by Siyuan Jing siyuan16@bu.edu
 """
 
 
@@ -34,15 +35,18 @@ NUMLAM = len(LAM)
 
 MU = 1 # Service rate of customers; defined as 1 over first moment of service
 
-
-K = 2 # Service Distribution; second moment of service is K over MU^2
+LAM1=[lam/2 for lam in LAM]
+LAM2=[lam/2 for lam in LAM]
+K = 3 # Service Distribution; second moment of service is K over MU^2
 
 if K < 1:
     print('K must be at least 1')
     exit()
 
-RHO = np.zeros(NUMLAM) # load for each run
-
+# RHO = np.zeros(NUMLAM) # load for each run
+RHO1=np.array(LAM1/2)/MU
+RHO2=np.array(LAM2/2)/MU
+RHO=RHO1+RHO2
 for l in range(NUMLAM):
     RHO[l] = LAM[l]/MU
     if RHO[l] >=1:
