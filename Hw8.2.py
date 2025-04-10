@@ -44,8 +44,8 @@ if K < 1:
     exit()
 
 # RHO = np.zeros(NUMLAM) # load for each run
-RHO1=np.array(LAM1/2)/MU
-RHO2=np.array(LAM2/2)/MU
+RHO1=np.array(LAM1)/MU
+RHO2=np.array(LAM2)/MU
 RHO=RHO1+RHO2
 for l in range(NUMLAM):
     RHO[l] = LAM[l]/MU
@@ -87,12 +87,13 @@ def provider(env,arrival,serv_time,t_start,server,priority):
         yield env.timeout(serv_time)
 
         # Record total system time, if beyond the initial transient time
-        if priority == 1: 
-            server.delay_high[0]+=env.now-arrival
-            server.n_high[0]+=1
-        else: 
-            server.delay_low[0]+=env.now-arrival
-            server.n_low[0]+=1
+        if(env.now > t_start):
+            if priority == 1: 
+                server.delay_H[0]+=env.now-arrival
+                server.num_H[0]+=1
+            else: 
+                server.delay_L[0]+=env.now-arrival
+                server.num_L[0]+=1
 
 
 
@@ -180,8 +181,8 @@ Compute Statistics
 '''
 print('Mean Delay for High priority class: \r\n', Mean_Delay_H)
 print('Mean Delay for Low priority class: \r\n', Mean_Delay_L)
-Sample_Delay = np.mean(Mean_Delay_H,axis=0) # Sample Mean of the Delays
-Sample_Delay = np.mean(Mean_Delay_L,axis=0)
+Sample_Delay_H = np.mean(Mean_Delay_H,axis=0) # Sample Mean of the Delays
+Sample_Delay_L = np.mean(Mean_Delay_L,axis=0)
 # compute confidence intervals
 print('Statistical Results')
 CI_H = stats.sem(Mean_Delay_H, axis=0)*stats.norm.ppf(1-ALPHA/2)
@@ -189,27 +190,35 @@ CI_L = stats.sem(Mean_Delay_L, axis=0)*stats.norm.ppf(1-ALPHA/2)
 
 for l in range(NUMLAM):
     print('At arrival rate %f:' %(LAM[l]))
-    print('Sample Delay is %.3f with confidence interval %.3f.' %(Sample_Delay[l],CI[l]))
+    print('High priority class delay is %.3f with confidence interval %.3f.' %(Sample_Delay_H[l],CI_H[l]))
+    print('Low priority class delay is %.3f with confidence interval %.3f.' %(Sample_Delay_L[l],CI_L[l]))
 '''
 Plot Statistical Results against Analytical Expected Values
 '''
 
-NPAnalytical_Delay = np.zeros(NUMLAM) # Expected Delay
-
+NPAnalytical_Delay_H = np.zeros(NUMLAM) # Expected Delay
+NPAnalytical_Delay_L = np.zeros(NUMLAM)
 for l in range(NUMLAM):  #PK Formula
-    NPAnalytical_Delay[l] = (K*RHO[l])/(2*MU*(1-RHO[l])) + 1/MU  
+    E_Of_Service=1/MU
+    E_Of_Service_2=K/(MU**2)
+    lambda_total = LAM[l]
+    NPAnalytical_Delay_H[l] = (lambda_total * E_Of_Service_2)/(2*(1-RHO1[l])) + E_Of_Service
+    NPAnalytical_Delay_L[l] = (lambda_total * E_Of_Service_2)/(2*(1-RHO1[l])*(1-RHO[l])) + E_Of_Service 
 
 # Plot of Expected Delays    
-plt.plot(LAM,NPAnalytical_Delay, label='Analytical')
-
+plt.plot(LAM,NPAnalytical_Delay_H,'b-', label='High Class, Analytical')
+plt.plot(LAM,NPAnalytical_Delay_L,'r-', label='Low Class, Analytical')
 # Plot of Simulated Delays
-plt.errorbar(LAM, Sample_Delay, yerr=CI, fmt='x', label='Simulated') 
+plt.errorbar(LAM, Sample_Delay_H, yerr=CI_H, fmt='rx', label='High Class, Simulated') 
+plt.errorbar(LAM, Sample_Delay_L, yerr=CI_L, fmt='gx', label='Ligh Class, Simulated') 
 plt.title('Comparison of Analysis to Simulation (K=%d, MU=%.3f)' %(K, MU))
 plt.xlabel('Lambda')
 plt.ylabel('Mean System Time (Delay)')
 plt.legend()
+plt.savefig('MG1-bars-2.pdf')
 plt.show()  
 ''' Save the figure in PDF format - Need to comment out plt.show
 plt.savefig('MG1-bars.pdf')
 '''
+
 #plt.savefig('MG1-bars.pdf')
