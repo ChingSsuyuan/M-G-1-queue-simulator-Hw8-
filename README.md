@@ -1,1 +1,1 @@
-# M-G-1-queue-simulator-Hw8-
+# M-G-1 queue simulator Hw8
