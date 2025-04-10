@@ -9,7 +9,6 @@ changes the results. In addition, Gamma distribution with SHAPE = 1 (or K=2)
 corresponds to the Exponential distribution
 
 Authors: Jonathan Chamberlain and David Starobinski
-Modified by Siyuan Jing siyuan16@bu.edu
 """
 
 
@@ -35,29 +34,20 @@ NUMLAM = len(LAM)
 
 MU = 1 # Service rate of customers; defined as 1 over first moment of service
 
-U_MIN=0.5
-U_MAX=1.5
-U_MEAN=(U_MIN+U_MAX)/2
-U_SEC_M=(U_MIN**2+U_MAX*U_MIN+U_MAX**2)/3
-RHO = np.zeros(NUMLAM)
+
+K = 2 # Service Distribution; second moment of service is K over MU^2
+
+if K < 1:
+    print('K must be at least 1')
+    exit()
+
+RHO = np.zeros(NUMLAM) # load for each run
+
 for l in range(NUMLAM):
     RHO[l] = LAM[l]/MU
     if RHO[l] >=1:
         print('Unstable system specified. Lambda should be less than Mu.')
         exit()
-# K = 2 # Service Distributåion; second moment of service is K over MU^2
-
-# if K < 1:
-#     print('K must be at least 1')
-#     exit()
-
-# RHO = np.zeros(NUMLAM) # load for each run
-
-# for l in range(NUMLAM):
-#     RHO[l] = LAM[l]/MU
-#     if RHO[l] >=1:
-#         print('Unstable system specified. Lambda should be less than Mu.')
-#         exit()
         
 
 FRAC = 0.1 # fraction of time to wait for before collecting statistics
@@ -68,10 +58,10 @@ ALPHA = 0.05 # confidence interval is 100*(1-alpha) percent
 
 PKT_NUM = 10**4 #average number of arrivals in each simulation
 
-# # define parameters of Gamma distribution; Numpy uses shape/scale definition
-# if K > 1:
-#     SHAPE = 1/(K-1) # Shape of Gamma Distribution
-#     SCALE = (K-1)/MU # Scale of Gamma Distribution
+# define parameters of Gamma distribution; Numpy uses shape/scale definition
+if K > 1:
+    SHAPE = 1/(K-1) # Shape of Gamma Distribution
+    SCALE = (K-1)/MU # Scale of Gamma Distribution
 
 
 '''
@@ -114,7 +104,10 @@ def arrivals(env, server, rate, t_start):
 
         arrival = env.now # mark arrival time
         
-        serv_time=np.random.uniform(U_MIN,U_MAX)
+        if K == 1: 
+            serv_time = 1/MU # Special case for Deterministic system
+        else:
+            serv_time = np.random.gamma(SHAPE,SCALE)
 
         # Have server process customer arrival
         env.process(provider(env,arrival,serv_time,t_start,server))
@@ -181,14 +174,14 @@ Plot Statistical Results against Analytical Expected Values
 NPAnalytical_Delay = np.zeros(NUMLAM) # Expected Delay
 
 for l in range(NUMLAM):  #PK Formula
-    NPAnalytical_Delay[l] = (U_SEC_M*RHO[l])/(2*MU*(1-RHO[l])) + U_MEAN 
+    NPAnalytical_Delay[l] = (K*RHO[l])/(2*MU*(1-RHO[l])) + 1/MU  
 
 # Plot of Expected Delays    
 plt.plot(LAM,NPAnalytical_Delay, label='Analytical')
 
 # Plot of Simulated Delays
 plt.errorbar(LAM, Sample_Delay, yerr=CI, fmt='x', label='Simulated') 
-plt.title('Comparison of Analysis to Simulation (Uniform[%.1f, %.1f])' % (U_MIN, U_MAX))
+plt.title('Comparison of Analysis to Simulation (K=%d, MU=%.3f)' %(K, MU))
 plt.xlabel('Lambda')
 plt.ylabel('Mean System Time (Delay)')
 plt.legend()
