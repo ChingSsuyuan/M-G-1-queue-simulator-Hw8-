@@ -80,7 +80,7 @@ t_start - time to begin collection of statistics
 
 def provider(env,arrival,serv_time,t_start,server):
     # yield until the server is available
-    with server.processor.request() as MyTurn:
+    with server.processor.request(priority=priority) as MyTurn:
         yield MyTurn
 
         # customer has acquired the server, run job for specified service time
@@ -135,7 +135,7 @@ for l in range(NUMLAM):
 
         env = simpy.Environment() # establish SimPy environment
         # M|G|1 server, could simulate arbitrary M|G|n by updating capacity
-        processor = simpy.Resource(env,capacity=1) 
+        processor=simpy.PriorityResource(env,capacity=1)
 
         delay = np.zeros(1)
         n = np.zeros(1)
