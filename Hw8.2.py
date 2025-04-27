@@ -37,7 +37,8 @@ MU = 1 # Service rate of customers; defined as 1 over first moment of service
 
 LAM1=[lam/2 for lam in LAM]
 LAM2=[lam/2 for lam in LAM]
-K = 3 # Service Distribution; second moment of service is K over MU^2
+
+K = 2# Service Distribution; second moment of service is K over MU^2
 
 if K < 1:
     print('K must be at least 1')
