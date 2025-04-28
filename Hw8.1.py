@@ -108,11 +108,10 @@ t_start - time to begin collection of statistics
 def arrivals(env, server, rate, t_start):
     while True:
 
-        yield env.timeout(np.random.exponential(1/rate)) # Poisson arrivals; 
-
+        yield env.timeout(np.random.uniform(0.2,1.8,1)) 
         arrival = env.now # mark arrival time
-        
-        serv_time=np.random.uniform(U_MIN,U_MAX)
+        u=np.random.uniform(0,1,1)
+        serv_time=(1-u)**(-1/3)-1
 
         # Have server process customer arrival
         env.process(provider(env,arrival,serv_time,t_start,server))
